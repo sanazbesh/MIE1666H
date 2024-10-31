@@ -17,6 +17,8 @@ from miplearn.solvers.gurobi import GurobiModel
 
 
 
+
+
 @dataclass
 class MultiKnapsackData:
     """Data for the multi-dimensional knapsack problem
