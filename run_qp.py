@@ -14,7 +14,7 @@ from src.func import roundGumbelModel, roundThresholdModel
 # random seed
 np.random.seed(42)
 torch.manual_seed(42)
-torch.cuda.manual_seed(42)
+# torch.cuda.manual_seed(42)
 
 def set_components(method, num_var, num_ineq, hlayers_sol, hlayers_rnd, hwidth):
     """
@@ -34,7 +34,9 @@ def set_components(method, num_var, num_ineq, hlayers_sol, hlayers_rnd, hwidth):
         rnd = roundGumbelModel(layers=layers_rnd, param_keys=["b"], var_keys=["x"], output_keys=["x_rnd"],
                                int_ind={"x":range(num_var)}, continuous_update=True, name="round")
     # build neuromancer problem for rounding
-    components = nn.ModuleList([smap, rnd]).to("cuda")
+    # components = nn.ModuleList([smap, rnd]).to("cuda")
+    components = nn.ModuleList([smap, rnd])
+
     return components
 
 
@@ -45,7 +47,7 @@ def eval(data_test, model, components):
     params, sols, objvals, conviols, elapseds = [], [], [], [], []
     for b in tqdm(data_test.datadict["b"][:100]):
         # data point as tensor
-        datapoints = {"b": torch.unsqueeze(b, 0).to("cuda"),
+        datapoints = {"b": torch.unsqueeze(b, 0).to("cpu"),
                       "name": "test"}
         # infer
         components.eval()
@@ -119,7 +121,7 @@ if __name__ == "__main__":
     # random seed
     np.random.seed(42)
     torch.manual_seed(42)
-    torch.cuda.manual_seed(42)
+    # torch.cuda.manual_seed(42)
 
     # hyperparameters
     hsize_dict = {5:16, 10:32, 20:64, 50:128, 100:256, 200:512, 500:1024}
@@ -141,7 +143,7 @@ if __name__ == "__main__":
     patience = 20                   # number of epochs with no improvement in eval metric to allow before early stopping
     optimizer = torch.optim.AdamW(components.parameters(), lr=lr)
     # create a trainer for the problem
-    my_trainer = trainer(components, loss_fn, optimizer, epochs, patience, warmup, device="cuda")
+    my_trainer = trainer(components, loss_fn, optimizer, epochs, patience, warmup, device="cpu")
     # training for the rounding problem
     my_trainer.train(loader_train, loader_dev)
 
