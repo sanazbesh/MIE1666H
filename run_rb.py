@@ -12,9 +12,9 @@ from src.func.layer import netFC
 from src.func import roundGumbelModel, roundThresholdModel
 
 # random seed
-np.random.seed(42)
-torch.manual_seed(42)
-torch.cuda.manual_seed(42)
+np.random.seed(142)
+torch.manual_seed(142)
+torch.cuda.manual_seed(142)
 
 def set_components(method, num_blocks, hlayers_sol, hlayers_rnd, hwidth):
     """
