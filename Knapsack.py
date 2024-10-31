@@ -180,7 +180,7 @@ class MultiKnapsackGenerator:
 
 
 # ------------------------------------------- Generate 10 instances
-data = MultiKnapsackGenerator(
+all_instances = MultiKnapsackGenerator(
         n=randint(low=10, high=11),
         m=randint(low=5, high=6),
         w=uniform(loc=0, scale=1000),
@@ -191,6 +191,8 @@ data = MultiKnapsackGenerator(
         p_jitter=uniform(loc=0.75, scale=0.5),
         fix_w=True,
     ).generate(10)
+
+data = all_instances[0]
 
 
 # ---------------------------------------------- model

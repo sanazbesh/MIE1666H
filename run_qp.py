@@ -27,6 +27,12 @@ def set_components(method, num_var, num_ineq, hlayers_sol, hlayers_rnd, hwidth):
     smap = nm.system.Node(func, ["b"], ["x"], name="smap")
     # define rounding model
     layers_rnd = netFC(input_dim=num_ineq+num_var, hidden_dims=[hwidth]*hlayers_rnd, output_dim=num_var)
+
+    """
+    The following functions consider both integer and binary variables, 
+    if we only have binaries, we can remove integer parts (I think it works even if we don't)
+    """
+
     if method == "classfication":
         rnd = roundThresholdModel(layers=layers_rnd, param_keys=["b"], var_keys=["x"], output_keys=["x_rnd"],
                                   int_ind={"x":range(num_var)}, continuous_update=True, name="round")
@@ -101,10 +107,14 @@ if __name__ == "__main__":
     val_size = 1000           # number of validation size
     train_size = num_data - test_size - val_size
 
+
+    """
+    WHY ONLY SAMPLES FOR b?
+    """
     # data sample from uniform distribution
     b_samples = torch.from_numpy(np.random.uniform(-1, 1, size=(num_data, num_ineq))).float()
     data = {"b":b_samples}
-    # data split
+    # data split 
     from src.utlis import data_split
     data_train, data_test, data_dev = data_split(data, test_size=test_size, val_size=val_size)
 
