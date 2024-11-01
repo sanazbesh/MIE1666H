@@ -20,6 +20,7 @@ class knapsack(abcParamSolver):
                 p_jitter=uniform(loc=0.75, scale=0.5),
                 fix_w=True,
                 ).generate(1)[0]
+        
         # convert lists to dict
         p = {} # prices
         w = {} # weights
@@ -68,7 +69,7 @@ if __name__ == "__main__":
     num_ineq = 10
     num_data = 5000
 
-    # generate parameters
+    # generate sample of capacities (c)
     data = MultiKnapsackGenerator(
                 n=randint(low=num_var, high=num_var+1),
                 m=randint(low=num_ineq, high=num_ineq+1),
