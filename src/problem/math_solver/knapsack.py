@@ -4,11 +4,24 @@ from pyomo import environ as pe
 from src.problem.math_solver import abcParamSolver
 from src.problem.math_solver import MultiKnapsackGenerator
 
+# add this to generate data
+from scipy.stats import uniform, randint
+
 class knapsack(abcParamSolver):
     def __init__(self, num_var, num_ineq, timelimit=None):
         super().__init__(timelimit=timelimit, solver="gurobi")
 
         # generate a sample to fix prices and weigths
+        """
+        I am not sure if this is a good way to generate instances,
+        but this is similar to quadratic function
+        where they generate fixed params A,Q,p (p,w in our problem)
+        and set the right hand side b (c in our problem) to zero: m.c = pe.Param(pe.RangeSet(num_ineq), default=0, mutable=True)
+        to change it outside the function
+        
+        notice that m.c is mutuable which means it can be changed
+        we can change the default to a larger value, but I don't know if it matters
+        """
         data = MultiKnapsackGenerator(
                 n=randint(low=num_var, high=num_var+1),
                 m=randint(low=num_ineq, high=num_ineq+1),
