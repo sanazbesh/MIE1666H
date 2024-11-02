@@ -6,4 +6,5 @@ from src.problem.math_solver import rosenbrock as msRosenbrock
 from src.problem.neuromancer import rosenbrock as nmRosenbrock
 # new
 from src.problem.math_solver import knapsack as msKnapsack
+from src.problem.neuromancer import knapsack as nmKnapsack
 
