@@ -48,6 +48,8 @@ class trainer:
                 # forwad pass
                 for comp in self.components:
                     data_dict.update(comp(data_dict))
+                if 'x_rnd' in data_dict:
+                    data_dict['x_rnd'] = torch.clamp(data_dict['x_rnd'], min=0)
                 data_dict = self.loss_fn(data_dict)
                 # backward pass
                 data_dict[self.loss_key].backward()

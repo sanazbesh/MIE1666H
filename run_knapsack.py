@@ -22,6 +22,8 @@ def set_components(method, num_var, num_ineq, hlayers_sol, hlayers_rnd, hwidth):
     func = nm.modules.blocks.MLP(insize=num_ineq, outsize=num_var, bias=True,
                                  linear_map=nm.slim.maps["linear"],
                                  nonlin=nn.ReLU, hsizes=[hwidth]*hlayers_sol)
+    # Add an additional ReLU layer to enforce non-negativity on the final output
+    func = nn.Sequential(func, nn.ReLU())
     smap = nm.system.Node(func, ["c"], ["x"], name="smap")
 
     # define rounding model

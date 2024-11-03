@@ -3,6 +3,12 @@ import torch
 from torch import nn
 import neuromancer as nm
 
+
+# Custom activation function to ensure non-negative integers
+class NonNegativeIntegerActivation(nn.Module):
+    def forward(self, x):
+        return torch.floor(torch.clamp(x, min=0))  # Ensure non-negativity and integer
+
 class penaltyLoss(nn.Module):
     """
     Penalty loss function for knapsack problem
@@ -24,6 +30,7 @@ class penaltyLoss(nn.Module):
         """
         forward pass
         """
+
         # Objective function
         obj = self.cal_obj(input_dict)
         # Constraints violation
@@ -51,7 +58,7 @@ class penaltyLoss(nn.Module):
         """
         x, c = input_dict[self.x_key], input_dict[self.c_key]
         lhs = torch.einsum("ij,bj->bi", self.w, x)  # w * x
-        violation = torch.relu(lhs - c).sum(dim=1)  # Enforce w*x <= c
+        violation = torch.relu(lhs - c).sum(dim=1)   # Enforce w*x <= c
         return violation
 
 
@@ -86,6 +93,7 @@ if __name__ == "__main__":
     func = nm.modules.blocks.MLP(insize=num_ineq, outsize=num_var, bias=True,
                                  linear_map=nm.slim.maps["linear"],
                                  nonlin=nn.ReLU, hsizes=[10]*4)
+    
     components = nn.ModuleList([nm.system.Node(func, ["c"], ["x"], name="smap")])
 
     # Build neuromancer problem
