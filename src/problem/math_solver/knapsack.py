@@ -43,8 +43,6 @@ class knapsack(abcParamSolver):
         for i in range(num_ineq):
             m.cons.add( sum([m.w[i,j]*m.x[j] for j in range(num_var)]) <= m.c[i] )
 
-        m.pprint()
-
         # set attributes
         self.model = m
         self.params ={"c":m.c}
