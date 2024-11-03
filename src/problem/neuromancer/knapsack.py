@@ -68,7 +68,7 @@ if __name__ == "__main__":
     val_size = 1000   # Number of validation size
 
     # Generate data samples for capacities (c)
-    c_samples = torch.from_numpy(np.random.uniform(5, 10, size=(num_data, num_ineq))).float()
+    c_samples = torch.from_numpy(np.random.uniform(30, 50, size=(num_data, num_ineq))).float()
     data = {"c": c_samples}
     # Data split
     from src.utlis import data_split

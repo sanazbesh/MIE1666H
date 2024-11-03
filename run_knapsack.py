@@ -64,6 +64,7 @@ def eval(data_test, model, components, num_var):
         objvals.append(objval)
         conviols.append(sum(model.cal_violation()))
         elapseds.append(tock - tick)
+    
     df = pd.DataFrame({"Param": params, "Sol": sols, "Obj Val": objvals, "Constraints Viol": conviols, "Elapsed Time": elapseds})
     time.sleep(1)
     print(df.describe())
@@ -89,7 +90,7 @@ if __name__ == "__main__":
     train_size = num_data - test_size - val_size
 
     # data sample from uniform distribution
-    c_samples = torch.from_numpy(np.random.uniform(5, 10, size=(num_data, num_ineq))).float()
+    c_samples = torch.from_numpy(np.random.uniform(30, 50, size=(num_data, num_ineq))).float()
     data = {"c": c_samples}
     
     from src.utlis import data_split

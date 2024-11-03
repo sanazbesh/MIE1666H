@@ -186,47 +186,33 @@ class knapsack(abcParamSolver):
     def __init__(self, num_var, num_ineq, timelimit=None):
         super().__init__(timelimit=timelimit, solver="gurobi")
 
-        # generate a sample to fix prices and weigths
-        """
-        I am not sure if this is a good way to generate instances,
-        but this is similar to quadratic function
-        where they generate fixed params A,Q,p (p,w in our problem)
-        and set the right hand side b (c in our problem) to zero: m.c = pe.Param(pe.RangeSet(num_ineq), default=0, mutable=True)
-        to change it outside the function
-        
-        notice that m.c is mutuable which means it can be changed
-        we can change the default to a larger value, but I don't know if it matters
-        """
-        data = MultiKnapsackGenerator(
-                n=randint(low=num_var, high=num_var+1),
-                m=randint(low=num_ineq, high=num_ineq+1),
-                w=uniform(loc=0, scale=1000),
-                K=uniform(loc=100, scale=0),
-                u=uniform(loc=1, scale=0),
-                alpha=uniform(loc=0.25, scale=0),
-                w_jitter=uniform(loc=0.95, scale=0.1),
-                p_jitter=uniform(loc=0.75, scale=0.5),
-                fix_w=True,
-                ).generate(1)[0]
-        
+        # # generate a sample to fix prices and weigths
+        # data = MultiKnapsackGenerator(
+        #         n=randint(low=num_var, high=num_var+1),
+        #         m=randint(low=num_ineq, high=num_ineq+1),
+        #         w=uniform(loc=0, scale=1000),
+        #         K=uniform(loc=100, scale=0),
+        #         u=uniform(loc=1, scale=0),
+        #         alpha=uniform(loc=0.25, scale=0),
+        #         w_jitter=uniform(loc=0.95, scale=0.1),
+        #         p_jitter=uniform(loc=0.75, scale=0.5),
+        #         fix_w=True,
+        #         ).generate(1)[0]
+
+        rng = np.random.RandomState(17)
+        raw_p = 0.1 * rng.random(num_var)   # prices
+        raw_w = rng.uniform(0.5, 1.5, size=(num_ineq, num_var))  # weights
+
         # convert lists to dict
         p = {} # prices
         w = {} # weights
-        c = {} # capacities
 
         for j in range(num_var):
-            p[j] = data.prices[j]
+            p[j] = raw_p[j]
 
         for i in range(num_ineq):
-            c[i] = data.capacities[i]
             for j in range(num_var):
-                w[i,j] = data.weights[i][j]
-        
-        # fixed params are p and w
-        
-        # size
-        #num_ineq = len(w)  # This is wrong
-        #num_var = len(p)
+                w[i,j] =raw_w[i][j]
 
         # Mathematical model
         m = pe.ConcreteModel()
@@ -234,9 +220,9 @@ class knapsack(abcParamSolver):
         m.p = pe.Param(pe.RangeSet(0,num_var-1), initialize=p)
         m.w = pe.Param(pe.RangeSet(0,num_ineq-1), pe.RangeSet(0,num_var-1), initialize=w)
         # mutable parameters (parametric part of the problem)
-        m.c = pe.Param(pe.RangeSet(0,num_ineq-1), default=0, mutable=True)
+        m.c = pe.Param(pe.RangeSet(0,num_ineq-1), default=25*max([max(raw_w[i]) for i in range(len(raw_w))]), mutable=True)
         # decision variables
-        m.x = pe.Var(pe.RangeSet(0,num_var-1), domain=pe.Binary)
+        m.x = pe.Var(pe.RangeSet(0,num_var-1), domain=pe.NonNegativeIntegers)
         # objective function
         obj = sum(-1*m.x[j] * m.p[j]  for j in range(num_var))
         m.obj = pe.Objective(sense=pe.minimize, expr=obj)
@@ -244,6 +230,8 @@ class knapsack(abcParamSolver):
         m.cons = pe.ConstraintList()
         for i in range(num_ineq):
             m.cons.add( sum([m.w[i,j]*m.x[j] for j in range(num_var)]) <= m.c[i] )
+
+        m.pprint()
 
         # set attributes
         self.model = m
@@ -260,22 +248,23 @@ if __name__ == "__main__":
     num_ineq = 10
     num_data = 5000
 
-    # generate sample of capacities (c)
-    data = MultiKnapsackGenerator(
-                n=randint(low=num_var, high=num_var+1),
-                m=randint(low=num_ineq, high=num_ineq+1),
-                w=uniform(loc=0, scale=1000),
-                K=uniform(loc=100, scale=0),
-                u=uniform(loc=1, scale=0),
-                alpha=uniform(loc=0.25, scale=0),
-                w_jitter=uniform(loc=0.95, scale=0.1),
-                p_jitter=uniform(loc=0.75, scale=0.5),
-                fix_w=True,
-                ).generate(num_data)
+    # # generate sample of capacities (c)
+    # data = MultiKnapsackGenerator(
+    #             n=randint(low=num_var, high=num_var+1),
+    #             m=randint(low=num_ineq, high=num_ineq+1),
+    #             w=uniform(loc=0, scale=1000),
+    #             K=uniform(loc=100, scale=0),
+    #             u=uniform(loc=1, scale=0),
+    #             alpha=uniform(loc=0.25, scale=0),
+    #             w_jitter=uniform(loc=0.95, scale=0.1),
+    #             p_jitter=uniform(loc=0.75, scale=0.5),
+    #             fix_w=True,
+    #             ).generate(num_data)
     
-    c = np.array([data[i].capacities for i in range(num_data)])
+    # c = np.array([data[i].capacities for i in range(num_data)])
+    c_samples = np.random.uniform(5, 10, size=(num_data, num_ineq))
     # set params
-    params = {"c":c[0]}
+    params = {"c":c_samples[0]}
     # init model
     model = knapsack(num_var, num_ineq)
 
