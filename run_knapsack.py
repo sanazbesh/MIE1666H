@@ -106,7 +106,6 @@ if __name__ == "__main__":
         ).generate(num_data)
     
     c_samples = torch.from_numpy(np.array([all_data[i].capacities for i in range(num_data)])).float()
-    print(c_samples)
     data = {"c": c_samples}
     
     from src.utlis import data_split
