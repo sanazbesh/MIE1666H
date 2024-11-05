@@ -5,7 +5,6 @@
 from dataclasses import dataclass
 from typing import List, Optional, Union
 
-import gurobipy as gp
 import numpy as np
 from gurobipy import GRB
 from scipy.stats import uniform, randint
@@ -13,9 +12,6 @@ from scipy.stats.distributions import rv_frozen
 
 from miplearn.io import read_pkl_gz
 from miplearn.solvers.gurobi import GurobiModel
-
-
-
 
 
 
@@ -39,7 +35,7 @@ class MultiKnapsackData:
 
 
 # noinspection PyPep8Naming
-class MultiKnapsackGenerator:
+class MultiKnapsackGenerator(seed):
     """Random instance generator for the multi-dimensional knapsack problem.
 
     Instances have a random number of items (or variables) and a random number of
@@ -96,6 +92,7 @@ class MultiKnapsackGenerator:
         If true, all prices, weights and capacities are rounded to the nearest
         integer.
     """
+    np.random.seed(seed)
 
     def __init__(
         self,

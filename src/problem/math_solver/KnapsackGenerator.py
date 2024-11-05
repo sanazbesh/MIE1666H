@@ -105,6 +105,7 @@ class MultiKnapsackGenerator:
         w_jitter: rv_frozen = uniform(loc=1.0, scale=0.0),
         p_jitter: rv_frozen = uniform(loc=1.0, scale=0.0),
         round: bool = True,
+        rng_state: int=1
     ):
         assert isinstance(n, rv_frozen), "n should be a SciPy probability distribution"
         assert isinstance(m, rv_frozen), "m should be a SciPy probability distribution"
@@ -133,16 +134,17 @@ class MultiKnapsackGenerator:
         self.fix_w: Optional[np.ndarray] = None
         self.fix_u: Optional[np.ndarray] = None
         self.fix_K: Optional[float] = None
+        self.rng_state = rng_state
 
         if fix_w:
-            self.fix_n = self.n.rvs()
-            self.fix_m = self.m.rvs()
-            self.fix_w = np.array([self.w.rvs(self.fix_n) for _ in range(self.fix_m)])
-            self.fix_u = self.u.rvs(self.fix_n)
-            self.fix_K = self.K.rvs()
+            self.fix_n = self.n.rvs(random_state=self.rng_state)
+            self.fix_m = self.m.rvs(random_state=self.rng_state)
+            self.fix_w = np.array([self.w.rvs(self.fix_n, random_state=self.rng_state+_) for _ in range(self.fix_m)])
+            self.fix_u = self.u.rvs(self.fix_n, random_state=self.rng_state)
+            self.fix_K = self.K.rvs(random_state=self.rng_state)
 
     def generate(self, n_samples: int) -> List[MultiKnapsackData]:
-        def _sample() -> MultiKnapsackData:
+        def _sample(i) -> MultiKnapsackData:
             if self.fix_w is not None:
                 assert self.fix_m is not None
                 assert self.fix_n is not None
@@ -154,16 +156,16 @@ class MultiKnapsackGenerator:
                 u = self.fix_u
                 K = self.fix_K
             else:
-                n = self.n.rvs()
-                m = self.m.rvs()
-                w = np.array([self.w.rvs(n) for _ in range(m)])
-                u = self.u.rvs(n)
-                K = self.K.rvs()
-            w = w * np.array([self.w_jitter.rvs(n) for _ in range(m)])
-            alpha = self.alpha.rvs(m)
+                n = self.n.rvs(random_state=self.rng_state+i)
+                m = self.m.rvs(random_state=self.rng_state+i)
+                w = np.array([self.w.rvs(n, random_state=self.rng_state+_+i) for _ in range(m)])
+                u = self.u.rvs(n, random_state=self.rng_state+i)
+                K = self.K.rvs(random_state=self.rng_state+i)
+            w = w * np.array([self.w_jitter.rvs(n, random_state=self.rng_state+_+i) for _ in range(m)])
+            alpha = self.alpha.rvs(m, random_state=self.rng_state+i)
             p = np.array(
                 [w[:, j].sum() / m + K * u[j] for j in range(n)]
-            ) * self.p_jitter.rvs(n)
+            ) * self.p_jitter.rvs(n, random_state=self.rng_state+i)
             b = np.array([w[i, :].sum() * alpha[i] for i in range(m)])
             if self.round:
                 p = p.round()
@@ -171,6 +173,24 @@ class MultiKnapsackGenerator:
                 w = w.round()
             return MultiKnapsackData(p, b, w)
 
-        return [_sample() for _ in range(n_samples)]
+        return [_sample(_) for _ in range(n_samples)]
+    
 
+# num_var = 5
+# num_ineq = 5
 
+# all_data = MultiKnapsackGenerator(
+#             n=randint(low=num_var, high=num_var+1),
+#             m=randint(low=num_ineq, high=num_ineq+1),
+#             w=uniform(loc=0, scale=1000),
+#             K=uniform(loc=100, scale=0),
+#             u=uniform(loc=1, scale=0),
+#             alpha=uniform(loc=0.25, scale=0),
+#             w_jitter=uniform(loc=0.95, scale=0.1),
+#             p_jitter=uniform(loc=0.75, scale=0.5),
+#             rng_state=17
+#         ).generate(1000)
+    
+# import torch
+# c_samples = torch.from_numpy(np.array([all_data[i].capacities for i in range(1000)])).float()
+# print(c_samples)

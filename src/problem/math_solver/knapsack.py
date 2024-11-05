@@ -1,19 +1,28 @@
 import numpy as np
 from pyomo import environ as pe
 
-from src.problem.math_solver import abcParamSolver
-
-
-# add this to generate data
 from scipy.stats import uniform, randint
+from src.problem.math_solver import abcParamSolver
+from src.problem.math_solver.KnapsackGenerator import MultiKnapsackGenerator
 
 class knapsack(abcParamSolver):
     def __init__(self, num_var, num_ineq, timelimit=None):
         super().__init__(timelimit=timelimit, solver="gurobi")
 
-        rng = np.random.RandomState(17)
-        raw_p = 0.1 * rng.random(num_var)   # prices
-        raw_w = rng.uniform(0.5, 1.5, size=(num_ineq, num_var))  # weights
+        an_instance = MultiKnapsackGenerator(
+                n=randint(low=num_var, high=num_var+1),
+                m=randint(low=num_ineq, high=num_ineq+1),
+                w=uniform(loc=0, scale=60),
+                K=uniform(loc=100, scale=0),
+                u=uniform(loc=1, scale=0),
+                alpha=uniform(loc=0.25, scale=0),
+                w_jitter=uniform(loc=0.95, scale=0.1),
+                p_jitter=uniform(loc=0.75, scale=0.5),
+                rng_state=17
+            ).generate(1)[0]
+
+        raw_p = an_instance.prices
+        raw_w = an_instance.weights
 
         # convert lists to dict
         p = {} # prices

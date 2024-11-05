@@ -86,13 +86,27 @@ if __name__ == "__main__":
 
     num_var = config.size     # number of variables (items)
     num_ineq = config.size    # number of constraints (knapsack capacities)
-    num_data = 10000          # number of data
-    test_size = 1000          # number of test size
-    val_size = 1000           # number of validation size
+    num_data = 1000          # number of data
+    test_size = 100          # number of test size
+    val_size = 100           # number of validation size
     train_size = num_data - test_size - val_size
-
+    
     # data sample from uniform distribution
-    c_samples = torch.from_numpy(np.random.uniform(30, 50, size=(num_data, num_ineq))).float()
+    from src.problem.math_solver.KnapsackGenerator import MultiKnapsackGenerator
+    from scipy.stats import uniform, randint
+    all_data = MultiKnapsackGenerator(
+            n=randint(low=num_var, high=num_var+1),
+            m=randint(low=num_ineq, high=num_ineq+1),
+            w=uniform(loc=1, scale=60),
+            K=uniform(loc=100, scale=0),
+            u=uniform(loc=1, scale=0),
+            alpha=uniform(loc=0.25, scale=0),
+            w_jitter=uniform(loc=0.95, scale=0.1),
+            p_jitter=uniform(loc=0.75, scale=0.5)
+        ).generate(num_data)
+    
+    c_samples = torch.from_numpy(np.array([all_data[i].capacities for i in range(num_data)])).float()
+    print(c_samples)
     data = {"c": c_samples}
     
     from src.utlis import data_split
