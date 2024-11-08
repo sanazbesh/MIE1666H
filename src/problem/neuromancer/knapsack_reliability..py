@@ -56,24 +56,24 @@ class penaltyLoss(nn.Module):
 
     def cal_obj(self, input_dict):
         """
-        Calculate objective function: negative total profit to maximize profit
+        Calculate objective function based on the logarithmic term with dynamically calculated r_j values.
         """
         x = input_dict[self.x_key]
-        # Update device
+        # Ensure that the device is set for tensor operations
         if self.device is None:
             self.device = x.device
             self.p = self.p.to(self.device)
-            self.w = self.w.to(self.device)
-        return -torch.einsum("m,bm->b", self.p, x)  # Maximize profit by minimizing negative profit
+        
+        # Calculate r_j based on the formula
+        max_p = self.p.max()
+        epsilon = 0.01 * max_p
+        r = self.p / (max_p + epsilon)  # r_j values
 
-    def cal_constr_viol(self, input_dict):
-        """
-        Calculate constraints violation based on capacities and weights
-        """
-        x, c = input_dict[self.x_key], input_dict[self.c_key]
-        lhs = torch.einsum("ij,bj->bi", self.w, x)  # w * x
-        violation = torch.relu(lhs - c).sum(dim=1)   # Enforce w*x <= c
-        return violation
+        # Compute the logarithmic objective
+        log_term = torch.log(1 - (1 - r) * x)  # Element-wise computation for each item
+        total_obj = -log_term.sum(dim=1)  # Sum over items for each batch
+
+        return total_obj
 
 
 if __name__ == "__main__":
