@@ -56,24 +56,28 @@ class penaltyLoss(nn.Module):
 
     def cal_obj(self, input_dict):
         """
-        Calculate objective function: negative total profit to maximize profit
+        Calculate extended objective function with pairwise interactions where q_{j1, j2} = 0.01 * (p_{j1} + p_{j2}).
         """
         x = input_dict[self.x_key]
-        # Update device
+        # Ensure that the device is set for tensor operations
         if self.device is None:
             self.device = x.device
             self.p = self.p.to(self.device)
             self.w = self.w.to(self.device)
-        return -torch.einsum("m,bm->b", self.p, x)  # Maximize profit by minimizing negative profit
 
-    def cal_constr_viol(self, input_dict):
-        """
-        Calculate constraints violation based on capacities and weights
-        """
-        x, c = input_dict[self.x_key], input_dict[self.c_key]
-        lhs = torch.einsum("ij,bj->bi", self.w, x)  # w * x
-        violation = torch.relu(lhs - c).sum(dim=1)   # Enforce w*x <= c
-        return violation
+        # First term: total profit
+        total_profit = -torch.einsum("m,bm->b", self.p, x)
+
+        # Second term: pairwise interaction
+        # Compute the pairwise interaction matrix q dynamically based on p
+        p_sum = self.p.view(-1, 1) + self.p.view(1, -1)  # Create pairwise sums of profits
+        q = 0.01 * p_sum  # Scale by 0.01
+
+        # Calculate the pairwise interaction term
+        pairwise_interaction = -torch.einsum("ij,bi,bj->b", q, x, x)
+
+        # Combined objective
+        return total_profit + pairwise_interaction
 
 
 if __name__ == "__main__":
