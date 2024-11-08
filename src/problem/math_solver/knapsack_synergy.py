@@ -27,6 +27,7 @@ class knapsack(abcParamSolver):
         # convert lists to dict
         p = {} # prices
         w = {} # weights
+        q = {}
 
         for j in range(num_var):
             p[j] = raw_p[j]
@@ -34,6 +35,10 @@ class knapsack(abcParamSolver):
         for i in range(num_ineq):
             for j in range(num_var):
                 w[i,j] =raw_w[i][j]
+
+        for j1 in range(num_var):
+            for j2 in range(num_var):
+                q[j1,j2] = 0.01*(p[j1]+p[j2])
 
         # Mathematical model
         m = pe.ConcreteModel()
@@ -45,7 +50,7 @@ class knapsack(abcParamSolver):
         # decision variables
         m.x = pe.Var(pe.RangeSet(0,num_var-1), domain=pe.NonNegativeIntegers)
         # objective function
-        obj = sum(-1*m.x[j] * m.p[j]  for j in range(num_var))
+        obj = sum([-1*m.x[j] * m.p[j]  for j in range(num_var)]) + sum([-1*q[j1,j2]*m.x[j1]*m.x[j2] for j1 in range(num_var) for j2 in range(num_var)])
         m.obj = pe.Objective(sense=pe.minimize, expr=obj)
         # constraints
         m.cons = pe.ConstraintList()
