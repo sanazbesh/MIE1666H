@@ -6,7 +6,7 @@ from torch import nn
 import neuromancer as nm
 from tqdm import tqdm
 
-from src.problem import nmKnapsack, msKnapsack
+from src.problem import nmKnapsack_synergy # we should import msKnapsack_synergy here
 from src.func.layer import netFC
 from src.func import roundGumbelModel, roundThresholdModel
 
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     components = set_components(config.round, num_var, num_ineq, hlayers_sol, hlayers_rnd, hwidth)
 
     # loss function with constraint penalty for knapsack
-    loss_fn = nmKnapsack(["c", "x_rnd"], num_var, num_ineq, penalty_weight=100)
+    loss_fn = nmKnapsack_synergy(["c", "x_rnd"], num_var, num_ineq, penalty_weight=100)
 
     # training
     from src.problem.neuromancer.trainer import trainer
