@@ -23,7 +23,7 @@ class knapsack_reliability(abcParamSolver):
 
         raw_p = an_instance.prices
         raw_w = an_instance.weights
-        max_p = max(p)
+        max_p = max(raw_p)
         epsilon = 0.01 * max_p
 
         # convert lists to dict
