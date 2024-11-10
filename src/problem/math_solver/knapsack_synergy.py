@@ -50,7 +50,7 @@ class knapsack(abcParamSolver):
         # decision variables
         m.x = pe.Var(pe.RangeSet(0,num_var-1), domain=pe.NonNegativeIntegers)
         # objective function
-        obj = sum([-1*m.x[j] * m.p[j]  for j in range(num_var)]) + sum([-1*q[j1,j2]*m.x[j1]*m.x[j2] for j1 in range(num_var) for j2 in range(num_var)])
+        obj = sum([-1*m.x[j] * m.p[j]  for j in range(num_var)]) + sum([-1*q[j1,j2]*m.x[j1]*m.x[j2] for j1 in range(num_var-1) for j2 in range(j1+1,num_var)])
         m.obj = pe.Objective(sense=pe.minimize, expr=obj)
         # constraints
         m.cons = pe.ConstraintList()
