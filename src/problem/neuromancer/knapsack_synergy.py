@@ -69,15 +69,18 @@ class penaltyLoss(nn.Module):
         total_profit = -torch.einsum("m,bm->b", self.p, x)
 
         # Second term: pairwise interaction
-        # Compute the pairwise interaction matrix q dynamically based on p
-        p_sum = self.p.view(-1, 1) + self.p.view(1, -1)  # Create pairwise sums of profits
-        q = 0.01 * p_sum  # Scale by 0.01
-
-        # Calculate the pairwise interaction term
-        pairwise_interaction = -torch.einsum("ij,bi,bj->b", q, x, x)
+        pairwise_interaction = 0
+        for i in range(self.p.size(0) - 1):
+            for j in range(i + 1, self.p.size(0)):
+                q_ij = 0.01 * (self.p[i] + self.p[j])  # Calculate q_{ij} as 0.01 * (p_i + p_j)
+                pairwise_interaction += q_ij * x[:, i] * x[:, j]
 
         # Combined objective
         return total_profit + pairwise_interaction
+
+
+
+
 
 
 if __name__ == "__main__":

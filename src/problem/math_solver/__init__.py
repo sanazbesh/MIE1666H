@@ -6,5 +6,5 @@ from src.problem.math_solver.rosenbrock import rosenbrock
 # new
 from src.problem.math_solver.KnapsackGenerator import MultiKnapsackGenerator
 from src.problem.math_solver.knapsack import knapsack
-from src.problem.math_solver.knapsack_synergy import penaltyLoss as knapsack_synergy
-from src.problem.math_solver.knapsack_reliability import penaltyLoss as knapsack_reliability
+from src.problem.math_solver.knapsack_synergy import knapsack_synergy
+from src.problem.math_solver.knapsack_reliability import knapsack_reliability

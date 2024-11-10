@@ -5,7 +5,7 @@ from scipy.stats import uniform, randint
 from src.problem.math_solver import abcParamSolver
 from src.problem.math_solver.KnapsackGenerator import MultiKnapsackGenerator
 
-class knapsack(abcParamSolver):
+class knapsack_synergy(abcParamSolver):
     def __init__(self, num_var, num_ineq, timelimit=None):
         super().__init__(timelimit=timelimit, solver="gurobi")
 
