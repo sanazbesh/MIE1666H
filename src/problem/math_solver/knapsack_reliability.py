@@ -40,7 +40,7 @@ class knapsack_reliability(abcParamSolver):
         # Mathematical model
         m = pe.ConcreteModel()
         # fixed parameters
-        m.p = pe.Param(pe.RangeSet(0,num_var-1), initialize=p)
+        m.p = pe.Param(pe.RangeSet(0,num_var-1), initialize=raw_p)
         m.w = pe.Param(pe.RangeSet(0,num_ineq-1), pe.RangeSet(0,num_var-1), initialize=w)
         # mutable parameters (parametric part of the problem)
         m.c = pe.Param(pe.RangeSet(0,num_ineq-1), default=25*max([max(raw_w[i]) for i in range(len(raw_w))]), mutable=True)
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     # set params
     params = {"c":c_samples[0]}
     # init model
-    model = knapsack(num_var, num_ineq)
+    model = knapsack_reliability(num_var, num_ineq)
 
     # solve the MIQP
     print("======================================================")

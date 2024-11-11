@@ -6,7 +6,7 @@ from torch import nn
 import neuromancer as nm
 from tqdm import tqdm
 
-from src.problem import nmKnapsack_reliability # we should import msKnapsack_reliability here
+from src.problem import nmKnapsack_reliability, msKnapsack_reliability
 from src.func.layer import netFC
 from src.func import roundGumbelModel, roundThresholdModel
 
@@ -145,5 +145,5 @@ if __name__ == "__main__":
     my_trainer.train(loader_train, loader_dev)
 
     # evaluate
-    model = msKnapsack(num_var, num_ineq)
+    model = msKnapsack_reliability(num_var, num_ineq)
     eval(data_test, model, components, num_var)
