@@ -137,7 +137,7 @@ if __name__ == "__main__":
 
     # training
     from src.problem.neuromancer.trainer import trainer
-    epochs = 5
+    epochs = 200
     warmup = 20
     patience = 20
     optimizer = torch.optim.AdamW(components.parameters(), lr=lr)

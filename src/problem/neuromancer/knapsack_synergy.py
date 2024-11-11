@@ -66,7 +66,7 @@ class penaltyLoss(nn.Module):
             self.w = self.w.to(self.device)
 
         # First term: total profit
-        total_profit = -torch.einsum("m,bm->b", self.p, x)
+        total_profit = torch.einsum("m,bm->b", self.p, x)
 
         # Second term: pairwise interaction
         pairwise_interaction = 0
@@ -75,8 +75,8 @@ class penaltyLoss(nn.Module):
                 q_ij = 0.01 * (self.p[i] + self.p[j])  # Calculate q_{ij} as 0.01 * (p_i + p_j)
                 pairwise_interaction += q_ij * x[:, i] * x[:, j]
 
-        # Combined objective
-        return total_profit + pairwise_interaction
+        # Combined objective (multiplied to -1 as we solve a minimization problem)
+        return -(total_profit + pairwise_interaction)
     
     def cal_constr_viol(self, input_dict):
         """
