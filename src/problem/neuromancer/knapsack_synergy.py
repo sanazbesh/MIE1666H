@@ -77,6 +77,15 @@ class penaltyLoss(nn.Module):
 
         # Combined objective
         return total_profit + pairwise_interaction
+    
+    def cal_constr_viol(self, input_dict):
+        """
+        Calculate constraints violation based on capacities and weights
+        """
+        x, c = input_dict[self.x_key], input_dict[self.c_key]
+        lhs = torch.einsum("ij,bj->bi", self.w, x)  # w * x
+        violation = torch.relu(lhs - c).sum(dim=1)   # Enforce w*x <= c
+        return violation
 
 
 

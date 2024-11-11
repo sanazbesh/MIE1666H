@@ -74,6 +74,16 @@ class penaltyLoss(nn.Module):
         total_obj = -log_term.sum(dim=1)  # Sum over items for each batch
 
         return total_obj
+    
+    def cal_constr_viol(self, input_dict):
+        """
+        Calculate constraints violation based on capacities and weights
+        """
+        x, c = input_dict[self.x_key], input_dict[self.c_key]
+        lhs = torch.einsum("ij,bj->bi", self.w, x)  # w * x
+        violation = torch.relu(lhs - c).sum(dim=1)   # Enforce w*x <= c
+        return violation
+
 
 
 if __name__ == "__main__":
