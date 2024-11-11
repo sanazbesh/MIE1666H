@@ -76,7 +76,7 @@ if __name__ == "__main__":
     # set params
     params = {"c":c_samples[0]}
     # init model
-    model = knapsack(num_var, num_ineq)
+    model = knapsack_synergy(num_var, num_ineq)
 
     # solve the MIQP
     print("======================================================")
