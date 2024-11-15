@@ -47,49 +47,86 @@ def knapsack_synergy(num_var, num_ineq, c, raw_p, raw_w):
 
 
 
-num_var = 10
-num_ineq = 10
+prob_size_list = [[5, 5] , [10, 10], [20, 20], [45, 45]] # [[num_var, num_ineq]]
 num_data = 100
 
-objvals, conviols, elapseds = [], [], []
 
-samples = MultiKnapsackGenerator(
-            n=randint(low=num_var, high=num_var+1),
-            m=randint(low=num_ineq, high=num_ineq+1),
-            w=uniform(loc=0, scale=60),
-            K=uniform(loc=100, scale=0),
-            u=uniform(loc=1, scale=0),
-            alpha=uniform(loc=0.25, scale=0),
-            w_jitter=uniform(loc=0.95, scale=0.1),
-            p_jitter=uniform(loc=0.75, scale=0.5),
-            rng_state=17
-        ).generate(num_data)
+for num_var, num_ineq in prob_size_list:
 
-c_samples = np.array([samples[i].capacities for i in range(num_data)])
 
-raw_p = samples[0].prices
-raw_w = samples[0].weights
+    print('-'*70)
+    print('-'*70)
+    print('Initiating for problems of the size of %i * %i' % (num_var, num_ineq))
+    print('-'*70)
 
-for c in c_samples:
-    # init model
-    model = knapsack_synergy(num_var, num_ineq, c, raw_p, raw_w)
+
+
+    objvals, conviols, elapseds = [], [], []
+
+
+    print('Generating %i number of problem instances'%(num_data))
+
+
     tick = time.time()
-    opt = SolverFactory('gurobi')
-    opt.options['NonConvex'] = 2
-    opt.solve(model)
-    tock = time.time()
-    # violation
-    violations = 0
-    for i in range(num_ineq):
-        violations += max(sum([model.w[i,j]*value(model.x[j]) for j in range(num_var)]) - model.c[i],0)
-    objvals.append(pe.value(model.obj))
-    conviols.append(violations)
-    elapseds.append(tock - tick)
+    samples = MultiKnapsackGenerator(
+                n=randint(low=num_var, high=num_var+1),
+                m=randint(low=num_ineq, high=num_ineq+1),
+                w=uniform(loc=0, scale=60),
+                K=uniform(loc=100, scale=0),
+                u=uniform(loc=1, scale=0),
+                alpha=uniform(loc=0.25, scale=0),
+                w_jitter=uniform(loc=0.95, scale=0.1),
+                p_jitter=uniform(loc=0.75, scale=0.5),
+                rng_state=17
+            ).generate(num_data)
 
-df = pd.DataFrame({"Obj Val": objvals, "Constraints Viol": conviols, "Elapsed Time": elapseds})
-time.sleep(1)
-print(df.describe())
-print("Number of infeasible solutions: {}".format(np.sum(df["Constraints Viol"] > 0)))
+    tock = time.time()
+
+
+    print('End of generating problem instances (%f sec).' % (tock - tick))
+    print('-'*70)
+ 
+
+
+    c_samples = np.array([samples[i].capacities for i in range(num_data)])
+
+    raw_p = samples[0].prices
+    raw_w = samples[0].weights
+
+
+    print('Solving...')
+    counter = 0
+
+    for c in c_samples:
+        # init model
+        model = knapsack_synergy(num_var, num_ineq, c, raw_p, raw_w)
+        tick = time.time()
+        opt = SolverFactory('gurobi')
+        opt.options['NonConvex'] = 2
+        opt.solve(model)
+        tock = time.time()
+        # violation
+        violations = 0
+        for i in range(num_ineq):
+            violations += max(sum([model.w[i,j]*value(model.x[j]) for j in range(num_var)]) - model.c[i],0)
+        objvals.append(pe.value(model.obj))
+        conviols.append(violations)
+        elapseds.append(tock - tick)
+        
+        counter+=1
+        print('Problem %i Solved (%f sec).'%(counter, tock - tick))
+
+
+    print('-'*70)
+    print('Summary results of run_EX_synergy for problems of the size of %i * %i' % (num_var, num_ineq))
+    print('-'*70)
+
+    df = pd.DataFrame({"Obj Val": objvals, "Constraints Viol": conviols, "Elapsed Time": elapseds})
+    time.sleep(1)
+    print(df.describe())
+    print("Number of infeasible solutions: {}".format(np.sum(df["Constraints Viol"] > 0)))
+
+    print('-'*70)
 
     
 
