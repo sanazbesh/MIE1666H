@@ -77,9 +77,9 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--round", type=str, default="classfication", choices=["classfication", "threshold"],
+    parser.add_argument("--round", type=str, default="classification", choices=["classfication", "threshold"],
                         help="method for rounding")
-    parser.add_argument("--size", type=int, default=50, choices=[5, 10, 20, 50, 100, 200, 500],
+    parser.add_argument("--size", type=int, default=10, choices=[5, 10, 20, 50, 100, 200, 500],
                         help="number of decision variables and constraints")
 
     config = parser.parse_args()
@@ -102,7 +102,8 @@ if __name__ == "__main__":
             u=uniform(loc=1, scale=0),
             alpha=uniform(loc=0.25, scale=0),
             w_jitter=uniform(loc=0.95, scale=0.1),
-            p_jitter=uniform(loc=0.75, scale=0.5)
+            p_jitter=uniform(loc=0.75, scale=0.5),
+            rng_state=17
         ).generate(num_data)
     
     c_samples = torch.from_numpy(np.array([all_data[i].capacities for i in range(num_data)])).float()

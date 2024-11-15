@@ -1,0 +1,95 @@
+import numpy as np
+from pyomo import environ as pe
+from pyomo.environ import *
+import time
+import pandas as pd
+from scipy.stats import uniform, randint
+from pyomo.opt import SolverFactory
+from src.problem.math_solver.KnapsackGenerator import MultiKnapsackGenerator
+
+def knapsack_synergy(num_var, num_ineq, c, raw_p, raw_w):
+
+    # convert lists to dict
+    p = {} # prices
+    w = {} # weights
+    q = {}
+
+    for j in range(num_var):
+        p[j] = raw_p[j]
+
+    for i in range(num_ineq):
+        for j in range(num_var):
+            w[i,j] =raw_w[i][j]
+
+    for j1 in range(num_var):
+        for j2 in range(num_var):
+            q[j1,j2] = 0.01*(p[j1]+p[j2])
+
+    # Mathematical model
+    m = pe.ConcreteModel()
+    # fixed parameters
+    m.p = pe.Param(pe.RangeSet(0,num_var-1), initialize=p)
+    m.w = pe.Param(pe.RangeSet(0,num_ineq-1), pe.RangeSet(0,num_var-1), initialize=w)
+    m.q = pe.Param(pe.RangeSet(0,num_var-1), pe.RangeSet(0,num_var-1), initialize=q)
+    # mutable parameters (parametric part of the problem)
+    m.c = pe.Param(pe.RangeSet(0,num_ineq-1), initialize=c)
+    # decision variables
+    m.x = pe.Var(pe.RangeSet(0,num_var-1), domain=pe.NonNegativeIntegers)
+    # objective function
+    obj = sum([-1*m.x[j] * m.p[j]  for j in range(num_var)]) + sum([-1*m.q[j1,j2]*m.x[j1]*m.x[j2] for j1 in range(num_var-1) for j2 in range(j1+1,num_var)])
+    m.obj = pe.Objective(sense=pe.minimize, expr=obj)
+    # constraints
+    m.cons = pe.ConstraintList()
+    for i in range(num_ineq):
+        m.cons.add( sum([m.w[i,j]*m.x[j] for j in range(num_var)]) <= m.c[i] )
+    
+    return m
+
+
+
+num_var = 10
+num_ineq = 10
+num_data = 100
+
+objvals, conviols, elapseds = [], [], []
+
+samples = MultiKnapsackGenerator(
+            n=randint(low=num_var, high=num_var+1),
+            m=randint(low=num_ineq, high=num_ineq+1),
+            w=uniform(loc=0, scale=60),
+            K=uniform(loc=100, scale=0),
+            u=uniform(loc=1, scale=0),
+            alpha=uniform(loc=0.25, scale=0),
+            w_jitter=uniform(loc=0.95, scale=0.1),
+            p_jitter=uniform(loc=0.75, scale=0.5),
+            rng_state=17
+        ).generate(num_data)
+
+c_samples = np.array([samples[i].capacities for i in range(num_data)])
+
+raw_p = samples[0].prices
+raw_w = samples[0].weights
+
+for c in c_samples:
+    # init model
+    model = knapsack_synergy(num_var, num_ineq, c, raw_p, raw_w)
+    tick = time.time()
+    opt = SolverFactory('gurobi')
+    opt.options['NonConvex'] = 2
+    opt.solve(model)
+    tock = time.time()
+    # violation
+    violations = 0
+    for i in range(num_ineq):
+        violations += max(sum([model.w[i,j]*value(model.x[j]) for j in range(num_var)]) - model.c[i],0)
+    objvals.append(pe.value(model.obj))
+    conviols.append(violations)
+    elapseds.append(tock - tick)
+
+df = pd.DataFrame({"Obj Val": objvals, "Constraints Viol": conviols, "Elapsed Time": elapseds})
+time.sleep(1)
+print(df.describe())
+print("Number of infeasible solutions: {}".format(np.sum(df["Constraints Viol"] > 0)))
+
+    
+
