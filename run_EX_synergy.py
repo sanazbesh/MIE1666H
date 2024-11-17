@@ -47,7 +47,7 @@ def knapsack_synergy(num_var, num_ineq, c, raw_p, raw_w):
 
 
 
-prob_size_list = [[5, 5] , [10, 10], [20, 20], [45, 45]] # [[num_var, num_ineq]]
+prob_size_list = [[5, 5] , [10, 10], [20, 20], [40, 40]] # [[num_var, num_ineq]]
 num_data = 100
 
 

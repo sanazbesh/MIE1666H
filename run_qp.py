@@ -88,7 +88,7 @@ if __name__ == "__main__":
     # experiments configuration
     parser.add_argument("--round",
                         type=str,
-                        default="classfication",
+                        default="threshold",
                         choices=["classfication", "threshold"],
                         help="method for rounding")
     parser.add_argument("--size",
